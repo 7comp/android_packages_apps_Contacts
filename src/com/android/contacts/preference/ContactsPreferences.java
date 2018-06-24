@@ -61,6 +61,22 @@ public class ContactsPreferences implements OnSharedPreferenceChangeListener {
     public static final String SORT_ORDER_KEY = "android.contacts.SORT_ORDER";
 
     /**
+     * A key in the {@link android.provider.Settings android.provider.Settings} provider
+     * that stores the preferred view mode for contacts (standard vs. compact).
+     */
+    public static final String VIEW_MODE_KEY = "android.contacts.VIEW_MODE";
+    
+    /**
+     * The value for the VIEW_MODE key corresponding to displaying a standard list view.
+     */
+    public static final int VIEW_MODE_STANDARD = 1;
+    
+    /**
+     * The value for the VIEW_MODE key corresponding to displaying a compact list view.
+     */
+    public static final int VIEW_MODE_COMPACT = 2; 
+
+    /**
      * The value for the SORT_ORDER key corresponding to sort by family name first.
      */
     public static final int SORT_ORDER_ALTERNATIVE = 2;
@@ -79,6 +95,7 @@ public class ContactsPreferences implements OnSharedPreferenceChangeListener {
     private final Context mContext;
     private int mSortOrder = PREFERENCE_UNASSIGNED;
     private int mDisplayOrder = PREFERENCE_UNASSIGNED;
+    private int mViewMode = PREFERENCE_UNASSIGNED;
     private int mPhoneticNameDisplayPreference = PREFERENCE_UNASSIGNED;
 
     private AccountWithDataSet mDefaultAccount = null;
@@ -167,6 +184,43 @@ public class ContactsPreferences implements OnSharedPreferenceChangeListener {
         editor.putInt(DISPLAY_ORDER_KEY, displayOrder);
         editor.commit();
         mBackupManager.dataChanged();
+    }
+
+    public boolean isViewModeUserChangeable() {
+        return mContext.getResources().getBoolean(R.bool.config_view_mode_user_changeable);
+    }
+
+    public int getDefaultViewMode() {
+        if (mContext.getResources().getBoolean(R.bool.config_default_view_mode_standard)) {
+            return VIEW_MODE_STANDARD;
+        } else {
+            return VIEW_MODE_COMPACT;
+        }
+    }
+    
+    public int getViewMode() {
+        if (!isViewModeUserChangeable()) {
+            return getDefaultViewMode();
+        }
+        if (mViewMode == PREFERENCE_UNASSIGNED) {
+            mViewMode = mPreferences.getInt(VIEW_MODE_KEY, getDefaultViewMode());
+        }      
+
+        if (mViewMode == -1) {
+            try {
+                mViewMode = Settings.System.getInt(mContext.getContentResolver(), VIEW_MODE_KEY);
+            } catch (SettingNotFoundException e) {
+                mViewMode = getDefaultViewMode();
+            }
+        }
+        return mViewMode;
+    }
+
+    public void setViewMode(int viewMode) {
+        mViewMode = viewMode;
+        final Editor editor = mPreferences.edit();
+        editor.putInt(VIEW_MODE_KEY, viewMode);
+        editor.commit(); 
     }
 
     public int getDefaultPhoneticNameDisplayPreference() {
@@ -289,6 +343,7 @@ public class ContactsPreferences implements OnSharedPreferenceChangeListener {
         // listener was unregistered.
         mDisplayOrder = PREFERENCE_UNASSIGNED;
         mSortOrder = PREFERENCE_UNASSIGNED;
+        mViewMode = PREFERENCE_UNASSIGNED;
         mPhoneticNameDisplayPreference = PREFERENCE_UNASSIGNED;
         mDefaultAccount = null;
 
@@ -328,6 +383,9 @@ public class ContactsPreferences implements OnSharedPreferenceChangeListener {
         } else if (SORT_ORDER_KEY.equals(key)) {
             mSortOrder = PREFERENCE_UNASSIGNED;
             mSortOrder = getSortOrder();
+         } else if (VIEW_MODE_KEY.equals(key)) {
+            mViewMode = PREFERENCE_UNASSIGNED;
+            mViewMode = getViewMode();
         } else if (PHONETIC_NAME_DISPLAY_KEY.equals(key)) {
             mPhoneticNameDisplayPreference = PREFERENCE_UNASSIGNED;
             mPhoneticNameDisplayPreference = getPhoneticNameDisplayPreference();
@@ -368,6 +426,16 @@ public class ContactsPreferences implements OnSharedPreferenceChangeListener {
             } catch (SettingNotFoundException e) {
             }
             setDisplayOrder(displayOrder);
+        }
+
+        if (!mPreferences.contains(VIEW_MODE_KEY)) {
+            int viewMode = getDefaultViewMode();
+            try {
+                viewMode = Settings.System.getInt(mContext.getContentResolver(),
+                        VIEW_MODE_KEY);
+            } catch (SettingNotFoundException e) {
+            }
+            setViewMode(viewMode);
         }
 
         if (!mPreferences.contains(PHONETIC_NAME_DISPLAY_KEY)) {

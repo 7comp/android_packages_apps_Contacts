@@ -1344,6 +1344,15 @@
     <!-- An allowable value for the "view names as" contact display option  -->
     <string name="display_options_view_family_name_first">Last name first</string>
 
+     <!-- Label of the "list view display mode" contact display option -->
+    <string name="display_options_view_mode">List view display mode</string>
+
+    <!-- An allowable value for the "list view display mode" contact display option -->
+    <string name="display_options_view_mode_standard">Standard view</string>
+
+    <!-- An allowable value for the "list view display mode" contact display option -->
+    <string name="display_options_view_mode_compact">Compact view</string>
+
     <!--Lable of the "Accounts" in settings [CHAR LIMIT=30]-->
     <string name="settings_accounts">Accounts</string>
 

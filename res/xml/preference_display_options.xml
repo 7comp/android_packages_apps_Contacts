@@ -49,6 +49,12 @@
         android:title="@string/display_options_view_names_as"
         android:dialogTitle="@string/display_options_view_names_as" />
 
+    <com.android.contacts.preference.ViewModePreference
+        android:icon="@null"
+        android:key="viewMode"
+        android:title="@string/display_options_view_mode"
+        android:dialogTitle="@string/display_options_view_mode" />
+
     <com.android.contacts.preference.PhoneticNameDisplayPreference
         android:icon="@null"
         android:key="phoneticNameDisplay"
